@@ -1,8 +1,8 @@
 /* eslint-disable linebreak-style */
 /* eslint-disable import/no-unresolved */
 import React, { useState } from 'react';
-// import { useAuth } from '../../hooks/auth';
 import { Image, ActivityIndicator } from 'react-native';
+import { useAuth } from '../../hooks/auth';
 import {
   Container, Input, Button, ButtonText,
 } from './styles';
@@ -10,29 +10,32 @@ import {
 import logoImg from '../../assets/logo.png';
 
 const Login = () => {
-//   const { signIn } = useAuth();
+  const { signIn } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
+  async function handleSubmit() {
     if (!email) return;
     if (!password) return;
+
     setLoading(true);
 
-    // try {
-    //   await signIn(email, password);
+    console.log('submit', email, password);
 
-    //   console.log('Login Sucess');
-
-  //   history.push('/tarefas');
-  // } catch (error) {
-  //   console.log('Login  error', error);
-  // } finally {
-  //   setLoading(false);
-  // }
-  };
+    try {
+      await signIn({
+        email,
+        password,
+      });
+    } catch (error) {
+      console.log(error);
+      console.log('Usuário ou senha não confere.');
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <Container>
