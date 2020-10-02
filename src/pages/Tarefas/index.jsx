@@ -1,76 +1,85 @@
-/* eslint-disable react/jsx-filename-extension */
+/* eslint-disable no-console */
 /* eslint-disable no-nested-ternary */
-// import { FiCircle, FiCheckCircle, FiDelete } from 'react-icons/fi';
-import { Text } from 'react-native';
-// import {
-//   Form, ErrorMessage, Tasks, Data,
-// } from './styles';
+import React, { useState, useEffect, useCallback } from 'react';
 
-import React, { useState, useEffect } from 'react';
+import { AntDesign } from '@expo/vector-icons';
+
 import api from '../../services/api';
+import {
+  Title,
+  Input,
+  Button,
+  ButtonTxt,
+  Container,
+  FormAddNewTask,
+  Tasks,
+  Task,
+  TaskTxt,
+  TaskActions,
+} from './stylesy';
 
-// import Input from '../../components/Input';
-
-// import Header from '../../components/Header';
-
-const Task = () => {
+const Taskss = () => {
   const [tasks, setTasks] = useState([]);
   const [newTask, setNewTask] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
 
-  const loadTasks = async () => {
-    try {
-      const response = await api.get('tarefas');
-      const sortedTasks = response.data.sort(({ createdAt: a },
-        { createdAt: b }) => (a && b ? a < b ? 1 : -1 : 0));
-      console.log('loadTasks', sortedTasks);
+  const loadTasks = useCallback(
+    async () => {
+      try {
+        const response = await api.get('tarefas');
+        const sortedTasks = response.data.sort(({ createdAt: a },
+          { createdAt: b }) => (a && b ? a < b ? 1 : -1 : 0));
 
-      setTasks(sortedTasks);
-    } catch (error) {
-      console.log('load tasks', error);
-    }
-  };
+        setTasks(sortedTasks);
+      } catch (error) {
+        console.log('load tasks', error);
+      }
+    }, [],
+  );
 
-  // load tasks on render
   useEffect(() => {
     loadTasks();
   }, []);
 
-  const handleAddTask = async (event) => {
-    event.preventDefault();
+  const handleAddTask = useCallback(
+    async () => {
+      if (newTask === '') {
+        setErrorMessage('Insert brand new Task');
+        return;
+      }
 
-    if (!newTask) {
-      setErrorMessage('Insert Task');
-      return;
-    }
+      setErrorMessage('');
 
-    const params = {
-      descricao: newTask,
-      concluido: false,
-      createdAt: new Date().toLocaleDateString(),
-    };
+      const params = {
+        descricao: newTask,
+        concluido: false,
+      };
 
-    try {
-      await api.post('tarefas', params);
+      try {
+        await api.post('tarefas', params);
+
+        loadTasks();
+        setNewTask('');
+      } catch (error) {
+        console.log('error handleAddTask:', error);
+
+        setErrorMessage('Problems with server');
+      }
+    }, [loadTasks, newTask],
+  );
+
+  const handleTask = useCallback(
+    async (task) => {
+      const params = {
+        ...task,
+        concluido: !task.concluido,
+      };
+
+      await api.put(`tarefas/${task.id}`, params);
 
       loadTasks();
-      setNewTask(''); // limpando o input
-      setErrorMessage('');// limpando error message
-    } catch (error) {
-      console.log('handleAddTask error', error);
-    }
-  };
-
-  const handleTask = async (task) => {
-    const params = {
-      ...task,
-      concluido: !task.concluido,
-    };
-
-    await api.put(`tarefas/${task.id}`, params);
-
-    loadTasks();
-  };
+    }, [loadTasks],
+  );
 
   const removeTask = async (task) => {
     await api.delete(`tarefas/${task.id}`);
@@ -78,9 +87,69 @@ const Task = () => {
   };
 
   return (
-    <Text>Tarefas</Text>
+    <Container>
+      <Title>
+        <AntDesign name="profile" size={34} color="black" />
+        Tasks
+      </Title>
 
+      <FormAddNewTask>
+        <Input
+          value={newTask}
+          onChangeText={(text) => setNewTask(text)}
+          placeholder="Create new tasks"
+        />
+
+        <Button onPress={() => { handleAddTask(); }}>
+          <ButtonTxt>
+            Create
+          </ButtonTxt>
+        </Button>
+      </FormAddNewTask>
+
+      <Tasks>
+        { tasks.map((tsk) => (
+          <Task key={tsk.id}>
+            <TaskTxt>{tsk.descricao}</TaskTxt>
+
+            <TaskActions>
+              {tsk.concluido ? (
+                <>
+                  <AntDesign.Button
+                    backgroundColor="#FFF"
+                    name="checkcircleo"
+                    size={24}
+                    color="green"
+                    onPress={() => handleTask(tsk)}
+                  />
+
+                  <AntDesign.Button
+                    backgroundColor="#FFF"
+                    name="closecircleo"
+                    size={24}
+                    color="red"
+                    onPress={() => removeTask(tsk)}
+                  />
+
+                </>
+              ) : (
+
+                <AntDesign.Button
+                  backgroundColor="#FFF"
+                  name="loading1"
+                  size={24}
+                  color="black"
+                  onPress={() => handleTask(tsk)}
+                />
+
+              )}
+
+            </TaskActions>
+          </Task>
+        ))}
+      </Tasks>
+    </Container>
   );
 };
 
-export default Task;
+export default Taskss;
