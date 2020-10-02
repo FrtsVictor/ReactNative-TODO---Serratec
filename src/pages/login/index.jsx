@@ -4,7 +4,10 @@ import React, { useState } from 'react';
 import { Image, ActivityIndicator } from 'react-native';
 import { useAuth } from '../../hooks/auth';
 import {
-  Container, Input, Button, ButtonText,
+  Container,
+  Input,
+  Button,
+  ButtonText,
 } from './styles';
 
 import logoImg from '../../assets/logo.png';
