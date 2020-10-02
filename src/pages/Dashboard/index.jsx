@@ -1,35 +1,32 @@
-/* eslint-disable react/no-unescaped-entities */
-/* eslint-disable import/named */
-/* eslint-disable no-console */
-/* eslint-disable no-unused-vars */
-/* eslint-disable no-undef */
-/* eslint-disable react/jsx-filename-extension */
 import React, {
   useState, useEffect, useCallback, useMemo,
 } from 'react';
 
-import { Text } from 'react-native';
-
+import { Feather } from '@expo/vector-icons';
+import { useIsFocused } from '@react-navigation/native';
 import api from '../../services/api';
-// import Header from '../../components/Header';
 
-// import { Resumo } from './styles';
+import {
+  TaskText, TaskView, Title, LogoutBtnTxt, LogoutBtn, TaskP, TaskBoldP, Container,
+} from './styles';
 
 const Dashboard = () => {
   const [tasks, setTasks] = useState([]);
+
+  const isFocused = useIsFocused();
 
   const loadTasks = useCallback(
     async () => {
       const response = await api.get('tarefas');
       setTasks(response.data);
-      console.log('loadTasks Aqui', response);
+      console.log('loadTasks Aqui');
     }, [],
   );
 
   const tasksConcludedQtd = useMemo(
     () => {
       const filtered = tasks.filter((task) => task.concluido === true);
-      console.log('memoria');
+      console.log('memoriaa');
 
       return filtered.length;
     }, [tasks],
@@ -42,14 +39,50 @@ const Dashboard = () => {
   // load page at start
   useEffect(() => {
     loadTasks();
-  }, [loadTasks]);
+  }, [loadTasks, isFocused || false]);
 
   return (
-    <Text>
-      Dashboard
-      {tasksConcludedQtd}
-      {taskQtd}
-    </Text>
+    <Container>
+      <Title>
+        <Feather name="layers" size={34} color="black" />
+
+        Dashboard
+      </Title>
+      <TaskView>
+        {taskQtd - tasksConcludedQtd === 0 ? (
+          <TaskText>Congratz! You have done all Tasks</TaskText>
+        ) : (
+          <TaskText>
+            You have
+            {' '}
+            { taskQtd - tasksConcludedQtd }
+            {' '}
+            pendding tasks
+          </TaskText>
+        )}
+        <TaskP>
+          Tasks concluded:
+          {' '}
+          <TaskBoldP>
+            {tasksConcludedQtd }
+            {' '}
+          </TaskBoldP>
+        </TaskP>
+        <TaskP>
+          Total:
+          {' '}
+          <TaskBoldP>
+            {taskQtd }
+            {' '}
+          </TaskBoldP>
+        </TaskP>
+        <LogoutBtn>
+          <LogoutBtnTxt>
+            Logout
+          </LogoutBtnTxt>
+        </LogoutBtn>
+      </TaskView>
+    </Container>
   );
 };
 
